@@ -56,12 +56,7 @@ export const BookmarkForm: React.FC = () => {
           className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
           required
         />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition duration-150"
-        >
-          Grab Icon & Save
-        </button>
+
       </form>
       {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
     </div>

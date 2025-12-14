@@ -1,3 +1,29 @@
+# 2025-12-13 Steve Grecni
+
+This was kind of a shower/workout thought of mine.   Build a Home Page for a
+web browser and show the icons kind of like Android does.   By default  my
+browser home page usually filled up with ads or just plain wasted space. Why
+not have it customizable?   I normally do a Google search for this type of
+thing, but I figured this would be a good React project to help me learn and I
+had my own ideas and didn't want to be influenced by any existing projects that
+are out there (if any).  But hey, the world is a big place, so a project like
+this most likely already exists.
+
+Currently the idea is to have all the data stored on the local web browser.
+Add a url, it will fetch the favicon file from that site an make an icon on
+this apps home screen.  From there, you can click on it to visit the site, 
+drag it to the trash, that's it for now.  If you clear your cache, then the
+data on the HomeScreen will go away, so I added an import export function.
+
+
+# future ideas:
+- rearrange the icons by drag and drop
+- maybe rename the icons
+- possible sign in via Oauth with Google / whatever and sync the data via a
+  custom api or maybe save it to your own Google Drive if that's even possible.
+
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

@@ -2,6 +2,8 @@ import React, { useRef } from 'react'; // Import useRef
 import { useBookmarkStore, type Bookmark } from '../store/useBookmarkStore';
 import { BookmarkIcon } from './BookmarkIcon';
 import { BookmarkForm } from './BookmarkForm';
+import { TrashCan } from './Trashcan';
+import { DragLayer } from './DragLayer';
 
 // --- (No changes to the component function definition) ---
 export const HomeScreen: React.FC = () => {
@@ -77,19 +79,17 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center p-8 pb-32">
-      
+      <DragLayer />
+
       {/* Header and Export/Import Buttons */}
       <header className="text-center mb-10 w-full max-w-4xl">
-        <h1 className="text-4xl font-extrabold text-blue-700">
-          My Bookmarks
-        </h1>
         <div className="flex justify-center items-center mt-2 space-x-4">
-            <p className="text-gray-600">Your saved icons persist using Zustand.</p>
+            <p className="text-gray-600">Your icons persist using your local browser storage.  If you clear your cache, your icons will go away.</p>
             
             {/* Import Button */}
             <button
                 onClick={triggerImport}
-                className="bg-blue-500 text-white text-sm px-3 py-1 rounded-md hover:bg-blue-600 transition duration-150 shadow-md"
+                className="bg-blue-500 text-black text-sm px-3 py-1 rounded-md hover:bg-blue-600 transition duration-150 shadow-md"
             >
                 ⬆️ Import Bookmarks (.json)
             </button>
@@ -106,7 +106,7 @@ export const HomeScreen: React.FC = () => {
             {/* Export Button (from previous step) */}
             <button
                 onClick={handleExport}
-                className="bg-green-500 text-white text-sm px-3 py-1 rounded-md hover:bg-green-600 transition duration-150 shadow-md"
+                className="bg-green-500 text-black text-sm px-3 py-1 rounded-md hover:bg-green-600 transition duration-150 shadow-md"
             >
                 ⬇️ Export Bookmarks (.json)
             </button>
@@ -132,6 +132,7 @@ export const HomeScreen: React.FC = () => {
           </div>
         )}
       </div>
+      <TrashCan />
 
       {/* Fixed Form at Bottom */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-50 border-t-2 border-gray-200 shadow-xl z-10">
