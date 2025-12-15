@@ -1,64 +1,79 @@
-// src/components/BookmarkForm.tsx
-import React, { useState } from 'react';
+import React, { useState, type FormEvent } from 'react';
 import { useBookmarkStore } from '../store/useBookmarkStore';
-import { useFaviconFetch } from '../hooks/useFaviconFetch';
 
 export const BookmarkForm: React.FC = () => {
-  const [inputUrl, setInputUrl] = useState('');
-  const [error, setError] = useState('');
+  const [url, setUrl] = useState('');
+  const [title, setTitle] = useState('');
   const addBookmark = useBookmarkStore((state) => state.addBookmark);
-  const { getFaviconUrl, extractDomain } = useFaviconFetch();
+  
+  const FALLBACK_ICON_URL = 'https://s2.googleusercontent.com/s2/favicons?domain=default&sz=64';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // --- NEW UTILITY FUNCTION ---
+  const getHostnameFromUrl = (inputUrl: string): string => {
+    // 1. Remove protocol (http, https) and common prefixes (www.)
+    let hostname = inputUrl.replace(/^(https?:\/\/)?(www\.)?/, '');
+    
+    // 2. Remove any path or query string that follows the domain name (e.g., /path?query)
+    hostname = hostname.split('/')[0].split('?')[0];
+
+    return hostname.trim();
+  };
+  // ---------------------------
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setError('');
 
-    if (!inputUrl.trim()) {
-      setError('Please enter a URL.');
-      return;
+    let correctedUrl = url.trim();
+    const lowerCaseUrl = correctedUrl.toLowerCase();
+    let finalIconUrl = FALLBACK_ICON_URL;
+    
+    // 1. Protocol Correction (Must have a protocol to be clickable)
+    if (!lowerCaseUrl.startsWith('http://') && !lowerCaseUrl.startsWith('https://')) {
+      correctedUrl = `http://${correctedUrl}`; 
     }
 
-    try {
-      // 1. Generate the icon URL
-      const iconUrl = getFaviconUrl(inputUrl);
-      if (!iconUrl) {
-         setError('Invalid URL format.');
-         return;
-      }
+    // 2. Hostname Extraction using the new robust utility function
+    const hostname = getHostnameFromUrl(correctedUrl);
 
-      // 2. Extract a simple title (e.g., the domain name)
-      const title = extractDomain(inputUrl).replace(/\..*$/, ''); // "google" from "google.com"
+    if (hostname) {
+        // Construct the favicon URL using the cleanly extracted hostname
+        finalIconUrl = `https://s2.googleusercontent.com/s2/favicons?domain=${hostname}&sz=64`;
+    } 
+    // If hostname is empty, finalIconUrl remains FALLBACK_ICON_URL
 
-      // 3. Create and add the new bookmark
-      addBookmark({
-        id: Date.now().toString(), // Simple unique ID
-        url: inputUrl,
-        title: title.charAt(0).toUpperCase() + title.slice(1), // Capitalize first letter
-        iconUrl: iconUrl,
-      });
+    // 3. Add to Store
+    addBookmark(correctedUrl, title.trim(), finalIconUrl);
 
-      // 4. Reset form
-      setInputUrl('');
-    } catch (err) {
-      setError('Could not process the URL. Ensure it is a valid web address.');
-    }
+    // 4. Reset Form
+    setUrl('');
+    setTitle('');
   };
 
   return (
-    <div className="p-4 bg-white shadow-md rounded-lg">
-      <h3 className="text-xl font-semibold mb-3 text-gray-800">Add New Bookmark</h3>
-      <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-        <input
-          type="url"
-          value={inputUrl}
-          onChange={(e) => setInputUrl(e.target.value)}
-          placeholder="Paste URL (e.g., https://google.com)"
-          className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          required
-        />
-
-      </form>
-      {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
-    </div>
+    // ... (rest of the component structure remains the same) ...
+    <form onSubmit={handleSubmit} className="flex space-x-2 w-full max-w-4xl mx-auto">
+      <input
+        type="text"
+        placeholder="Enter URL (e.g., example.com)"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        required
+        className="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+      />
+      <input
+        type="text"
+        placeholder="Enter Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
+        className="w-1/4 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+      />
+      <button
+        type="submit"
+        className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150"
+      >
+        Add
+      </button>
+    </form>
   );
 };
