@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'; // Added useRef
-import { useDrag, useDrop, type DropTargetMonitor } from 'react-dnd'; 
+import { useDrag, useDrop, type ConnectDragPreview, type DropTargetMonitor } from 'react-dnd'; 
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import { useBookmarkStore, type Bookmark } from '../store/useBookmarkStore'; // Import useBookmarkStore
 
@@ -19,7 +19,7 @@ interface DragItem {
   iconUrl: string;
 }
 
-export const BookmarkIcon: React.FC<BookmarkIconProps> = ({ bookmark }) => {
+export const BookmarkIcon: React.FC<BookmarkIconProps> = ({ bookmark, onRemove }) => {
   const [imgError, setImgError] = useState(false);
   const FALLBACK_ICON_URL = 'https://s2.googleusercontent.com/s2/favicons?domain=default&sz=64';
   const ref = useRef<HTMLDivElement>(null); // Ref to the component's DOM node

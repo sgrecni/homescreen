@@ -91,7 +91,7 @@ export const HomeScreen: React.FC = () => {
                 onClick={triggerImport}
                 className="bg-blue-500 text-black text-sm px-3 py-1 rounded-md hover:bg-blue-600 transition duration-150 shadow-md"
             >
-                ⬆️ Import Bookmarks
+                ⬆️ Import Bookmarks (.json)
             </button>
 
             {/* Hidden File Input */}
@@ -108,16 +108,16 @@ export const HomeScreen: React.FC = () => {
                 onClick={handleExport}
                 className="bg-green-500 text-black text-sm px-3 py-1 rounded-md hover:bg-green-600 transition duration-150 shadow-md"
             >
-                ⬇️ Export Bookmarks
+                ⬇️ Export Bookmarks (.json)
             </button>
         </div>
       </header>
       
       {/* Icon Grid (Centered) */}
-      <div className="flex-grow w-full max-w-4xl">
+      <div className="flex-grow w-full max-w-4xl flex justify-center">
         {/* ... (Icon rendering logic remains the same) ... */}
         {bookmarks.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-4 gap-y-2 p-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 p-4">
             {bookmarks.map((bookmark) => (
               <BookmarkIcon 
                 key={bookmark.id} 
