@@ -22,7 +22,12 @@ data on the HomeScreen will go away, so I added an import export function.
 - possible sign in via Oauth with Google / whatever and sync the data via a
   custom api or maybe save it to your own Google Drive if that's even possible.
 
+# Run locally
 
+```
+npm update
+npm run dev
+```
 
 # React + TypeScript + Vite
 
