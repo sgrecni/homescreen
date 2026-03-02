@@ -25,7 +25,7 @@ REMOTE_HOST="paradise.gifpaste.net"
 # Set the absolute path to the destination directory on the remote server.
 # This is often the web root for your site.
 # Example: /var/www/my-awesome-app
-REMOTE_DEST_PATH="/home/httpd/gifpaste.net/home"
+REMOTE_DEST_PATH="/home/httpd/gifpaste.net/domus"
 
 # --- SCRIPT LOGIC (You shouldn't have to edit below this line) ---
 
