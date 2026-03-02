@@ -1,3 +1,4 @@
+// BookmarkForm.tsx
 import React, { useState, type FormEvent } from 'react';
 import { useBookmarkStore } from '../store/useBookmarkStore';
 
@@ -18,10 +19,54 @@ export const BookmarkForm: React.FC = () => {
 
     return hostname.trim();
   };
+  const getAutoTitle = (urlInput: string): string => {
+    try {
+      // 1. Ensure the URL has a protocol for the URL constructor to work
+      let formattedUrl = urlInput.trim();
+      if (!/^https?:\/\//i.test(formattedUrl)) {
+        formattedUrl = 'https://' + formattedUrl;
+      }
+
+      const url = new URL(formattedUrl);
+      
+      // 2. Get hostname (e.g., "gemini.google.com" or "www.yahoo.com")
+      let hostname = url.hostname;
+
+      // 3. Remove 'www.' if present
+      hostname = hostname.replace(/^www\./i, '');
+
+      // 4. Split by dots and pick the most relevant part
+      // For "yahoo.com" -> ["yahoo", "com"] -> "yahoo"
+      // For "gemini.google.com" -> ["gemini", "google", "com"] -> "gemini"
+      const parts = hostname.split('.');
+      
+      // Logic: If there's more than one part, take the first one 
+      // unless it's just a two-part domain (like "google.com")
+      const brandName = parts.length > 1 ? parts[0] : hostname;
+
+      // 5. Capitalize the first letter
+      return brandName.charAt(0).toUpperCase() + brandName.slice(1);
+    } catch (e) {
+      return ''; // Fallback if URL is totally mangled
+    }
+  };
   // ---------------------------
+
+  const handleUrlBlur = () => {
+    // Only auto-fill if the user hasn't already typed a custom title
+    if (url && !title) {
+      const autoTitle = getAutoTitle(url);
+      setTitle(autoTitle);
+    }
+  }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    let finalTitle = title.trim();
+  
+    if (!finalTitle && url) {
+      finalTitle = getAutoTitle(url);
+    }
 
     let correctedUrl = url.trim();
     const lowerCaseUrl = correctedUrl.toLowerCase();
@@ -42,7 +87,7 @@ export const BookmarkForm: React.FC = () => {
     // If hostname is empty, finalIconUrl remains FALLBACK_ICON_URL
 
     // 3. Add to Store
-    addBookmark(correctedUrl, title.trim(), finalIconUrl);
+    addBookmark(correctedUrl, finalTitle.trim(), finalIconUrl);
 
     // 4. Reset Form
     setUrl('');
@@ -54,23 +99,21 @@ export const BookmarkForm: React.FC = () => {
     <form onSubmit={handleSubmit} className="flex space-x-2 w-full max-w-4xl mx-auto">
       <input
         type="text"
-        placeholder="Enter URL (e.g., example.com)"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        required
-        className="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        placeholder="Enter URL (e.g., yahoo.com)"
+        className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
       />
       <input
         type="text"
         placeholder="Enter Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        required
         className="w-1/4 p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
       />
       <button
         type="submit"
-        className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150"
+        className="px-6 py-3 bg-blue-800 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-95 transition-all duration-150"
       >
         Add
       </button>

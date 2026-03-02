@@ -1,4 +1,5 @@
-import React, { useState } from 'react'; // Import useRef
+// src/components/HomeScreen.tsx
+import React, { useState } from 'react';
 import { useBookmarkStore } from '../store/useBookmarkStore';
 import { BookmarkIcon } from './BookmarkIcon';
 import { BookmarkForm } from './BookmarkForm';
@@ -9,90 +10,85 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useBookmarkUtils } from '../utils/useBookmarkUtils';
 import { SideMenu } from './SideMenu';
 
-// --- (No changes to the component function definition) ---
-export const HomeScreen: React.FC = () => {
-  const bookmarks = useBookmarkStore((state) => state.bookmarks);
-  const removeBookmark = useBookmarkStore((state) => state.removeBookmark);
+interface HomeScreenProps {
+  onOpenAbout: () => void;
+}
 
-  // 🔑 FIX: Get the import/export functions from the new utility hook
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAbout }) => {
+  const bookmarks = useBookmarkStore((state) => state.bookmarks);
+
+  // Utility hook for Import/Export logic
   const { handleImport, handleExport } = useBookmarkUtils();
 
   // State for menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  // Define the common styling for the icon content container
-  const ICON_CONTENT_CLASSES = "w-14 h-14 flex items-center justify-center bg-white rounded-xl shadow-md border-2 border-gray-100 overflow-hidden shrink-0";
 
-  // Define the common styling for the entire icon wrapper
-  const ICON_WRAPPER_CLASSES = "flex flex-col items-center cursor-pointer p-2 rounded-lg group relative h-28 w-fit hover:bg-gray-100";
+  // Styles to match BookmarkIcon exactly for a consistent grid
+  const ICON_CONTENT_CLASSES = "w-14 h-14 flex items-center justify-center bg-white rounded-xl shadow-md border-2 border-gray-100 overflow-hidden shrink-0";
+  const ICON_WRAPPER_CLASSES = "flex flex-col items-center cursor-pointer p-2 rounded-lg group relative h-28 w-24 transition-all hover:bg-gray-100 outline-none focus:ring-2 focus:ring-blue-400";
 
   return (
     <DndProvider backend={HTML5Backend}>
-      {/* Include the Custom Drag Layer and Trash Can */}
+      {/* Custom Drag Layer for crisp desktop dragging */}
       <DragLayer />
 
-      <div className="min-h-screen bg-white flex flex-col items-center py-8">
-        {/* Header - Menu Button */}
-        {/* <header className="mb-10 w-full flex justify-start">
-          <h1 className="text-4xl font-extrabold text-gray-900">Dashboard</h1>
-        </header> */}
-
-        {/* Icon Grid Wrapper */}
-        <div className="w-full transition-all duration-300">
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-4 w-full justify-items-center">
-            {/* 🔑 FIX: The new Menu Button as the FIRST Grid Item */}
+      <div className="min-h-screen bg-white flex flex-col items-center pt-8 pb-32">
+        {/* Icon Grid */}
+        <div className="w-full max-w-7xl px-4 transition-all duration-300">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-y-8 gap-x-4 w-full justify-items-center">
+            
+            {/* ☰ The Menu Button as a Grid Tile */}
             <div 
               onClick={toggleMenu}
               className={ICON_WRAPPER_CLASSES}
               title="Open Menu"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && toggleMenu()}
             >
-                <div className={ICON_CONTENT_CLASSES}>
-                    {/* SVG Icon (Styling the SVG for visibility) */}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </div>
-
-                {/* Title */}
-                <p className="mt-1 text-xs text-center text-gray-700 max-w-[60px] truncate flex-grow-0">
-                  Menu
-                </p>
-                {/* Note: No remove button needed here */}
+              <div className={ICON_CONTENT_CLASSES}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </div>
+              <p className="mt-1 text-xs text-center text-gray-700 font-medium">
+                Menu
+              </p>
             </div>
 
-            {/* Existing Bookmark Icons */}
+            {/* List of Bookmark Icons */}
             {bookmarks.map((bookmark) => (
               <BookmarkIcon 
                 key={bookmark.id} 
                 bookmark={bookmark} 
-                onRemove={removeBookmark} 
               />
             ))}
             
           </div>
         </div>
 
-        {/* Fixed Form at Bottom */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-50 border-t-2 border-gray-200 shadow-xl z-10">
+        {/* Floating Toolbar & Trash Area */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-50/90 backdrop-blur-sm border-t border-gray-200 shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.05)] z-10">
           <div className="max-w-2xl mx-auto">
             <BookmarkForm />
+            <p className="mt-3 text-center text-[10px] text-gray-400 uppercase tracking-widest font-semibold">
+              Power User: Click title or press F2 to rename
+            </p>
           </div>
-          <p className="mt-2 text-center text-xs text-gray-400">
-            Note: Favicons are fetched using the Google S2 proxy service.
-          </p>
+          
+          {/* Trash Can sits on top of this bar but is absolutely positioned within it or the screen */}
           <TrashCan />
         </div>
-
       </div>
 
-      {/* RENDER THE MENU COMPONENT (props remain the same) */}
+      {/* Persistent Side Menu */}
       <SideMenu
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onExport={handleExport}
         onImport={handleImport}
+        onAboutClick={onOpenAbout}
       />
-
     </DndProvider>
   );
 };

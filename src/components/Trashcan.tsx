@@ -1,6 +1,7 @@
+// src/components/Trashcan.tsx
 import React, { useCallback } from 'react';
 import { useDrop, type DropTargetMonitor } from 'react-dnd'; 
-import { useBookmarkStore } from '../store/useBookmarkStore'; // Use the store directly
+import { useBookmarkStore } from '../store/useBookmarkStore';
 
 interface DragItem {
   id: string;
@@ -8,48 +9,61 @@ interface DragItem {
 }
 
 export const TrashCan: React.FC = () => {
-  // We DO NOT destructure removeBookmark here, as it's not strictly needed 
-  // for the hook dependencies, reducing potential staleness.
-
-  const [{ isOver }, drop] = useDrop<
+  const [{ isOver, canDrop }, drop] = useDrop<
     DragItem, 
     void,     
-    { isOver: boolean } 
+    { isOver: boolean; canDrop: boolean } 
   >(() => ({
     accept: 'BOOKMARK_ICON',
     
-    // FIX: Access the action directly via useBookmarkStore.getState()
-    // This ensures we always call the LATEST version of the action, 
-    // avoiding dependency issues inside the DND lifecycle.
+    // Using getState() ensures the action is never "stale"
     drop: (item: DragItem) => {
       useBookmarkStore.getState().removeBookmark(item.id);
-      console.log(`Bookmark ${item.id} deleted.`);
     },
     
     collect: (monitor: DropTargetMonitor<DragItem, void>) => ({
       isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
     }),
-  }), []); // Dependency array is EMPTY, because we don't rely on props/state functions
+  }), []);
 
-  // FIX: Using useCallback to correctly connect the ref, essential for the DND lifecycle
   const trashCanRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
-        // Connect the drop target to the DOM node
-        drop(node);
+      drop(node);
     }
-  }, [drop]); // Dependency on 'drop' is correct here
+  }, [drop]);
+
+  // Only show or highlight the trash can when a drag is actually happening
+  if (!canDrop && !isOver) {
+    // We keep it rendered but subtle so it doesn't "pop" in and out distractingly
+  }
 
   return (
     <div 
-      ref={trashCanRef} // Assign the stable callback ref
-      className={`fixed bottom-4 right-4 p-4 rounded-full shadow-2xl transition-colors duration-300 z-50
-        ${isOver ? 'bg-red-600 border-4 border-white' : 'bg-red-500'} 
-        w-20 h-20 flex items-center justify-center cursor-pointer`}
+      ref={trashCanRef}
+      className={`
+        fixed bottom-6 right-6 w-20 h-20 rounded-full shadow-2xl 
+        transition-all duration-300 z-50 flex items-center justify-center 
+        cursor-pointer border-4 border-white
+        ${isOver 
+          ? 'bg-red-600 scale-110 rotate-12 ring-4 ring-red-200' 
+          : canDrop 
+            ? 'bg-red-500 animate-pulse scale-105' 
+            : 'bg-gray-300 opacity-20 grayscale translate-y-2'
+        }
+      `}
       title="Drag bookmarks here to delete"
     >
-      <span className="text-4xl" role="img" aria-label="trash can">
-        {isOver ? '🔥' : '🗑️'}
-      </span>
+      <div className="flex flex-col items-center">
+        <span className="text-3xl" role="img" aria-label="trash can">
+          {isOver ? '🔥' : '🗑️'}
+        </span>
+        {isOver && (
+          <span className="text-[10px] text-white font-bold uppercase animate-bounce">
+            Drop!
+          </span>
+        )}
+      </div>
     </div>
   );
 };

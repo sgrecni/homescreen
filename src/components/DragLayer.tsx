@@ -1,33 +1,20 @@
-// src/components/CustomDragLayer.tsx (Final Visibility Fix)
+// src/components/DragLayer.tsx
 import React from 'react';
-import { useDragLayer } from 'react-dnd';
+import { useDragLayer, type XYCoord } from 'react-dnd';
 
-// Define the shape of the item being dragged
-interface DraggedBookmark {
-  id: string;
-  url: string;
-  title: string;
-  iconUrl: string;
-}
-
-// Define the item type
-const ItemTypes = {
-  BOOKMARK_ICON: 'BOOKMARK_ICON',
-};
-
-// Function to calculate the layer style
-function getItemStyles(currentOffset: { x: number; y: number } | null) {
-  if (!currentOffset) {
-    return {
-      display: 'none',
-    };
+function getItemStyles(
+  initialOffset: XYCoord | null,
+  currentOffset: XYCoord | null
+) {
+  if (!initialOffset || !currentOffset) {
+    return { display: 'none' };
   }
 
-  let { x, y } = currentOffset;
-  
-  // Icon size is 56px (w-14 h-14). Offset by 28px to center it.
-  const transform = `translate(${x - 28}px, ${y - 28}px)`; 
-  
+  // 🔑 THE MATH: Use the actual coordinates where the drag started
+  // to prevent the "jump" to the top-left or center.
+  const { x, y } = currentOffset;
+  const transform = `translate(${x}px, ${y}px)`;
+
   return {
     transform,
     WebkitTransform: transform,
@@ -35,58 +22,41 @@ function getItemStyles(currentOffset: { x: number; y: number } | null) {
 }
 
 export const DragLayer: React.FC = () => {
-  const { isDragging, itemType, currentOffset, item } = useDragLayer(
-    (monitor) => ({
-      item: monitor.getItem() as DraggedBookmark,
+  const { isDragging, itemType, initialSourceOffset, currentSourceOffset, item } =
+    useDragLayer((monitor) => ({
+      item: monitor.getItem(),
       itemType: monitor.getItemType(),
-      // We only need currentOffset for rendering position
-      currentOffset: monitor.getClientOffset(), 
+      // 🔑 Get the exact starting position of the icon
+      initialSourceOffset: monitor.getInitialSourceClientOffset(),
+      // 🔑 Get the current position of the icon
+      currentSourceOffset: monitor.getSourceClientOffset(),
       isDragging: monitor.isDragging(),
-    })
-  );
+    }));
 
-  if (!isDragging) {
+  if (!isDragging || itemType !== 'BOOKMARK_ICON') {
     return null;
   }
-  
-  const renderItem = () => {
-    switch (itemType) {
-      case ItemTypes.BOOKMARK_ICON:
-        const draggedBookmark = item as DraggedBookmark;
-        
-        return (
-          // Use inline styles to GUARANTEE size and visibility.
-          <div 
-            style={{ 
-              width: '56px', // w-14
-              height: '56px', // h-14
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'white',
-              borderRadius: '0.75rem', // rounded-xl
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)', // shadow-xl
-              border: '2px solid #3b82f6', // border-2 border-blue-500
-              opacity: 0.9,
-            }}
-          >
-            <img
-                src={draggedBookmark.iconUrl}
-                alt={`${draggedBookmark.title} icon`}
-                className="w-10 h-10 object-contain"
-            />
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+
+  const draggedBookmark = item as any;
 
   return (
-    <div className="fixed pointer-events-none top-0 left-0 w-full h-full z-50">
-      {/* Pass only currentOffset to getItemStyles */}
-      <div style={getItemStyles(currentOffset)}>
-        {renderItem()}
+    <div className="fixed pointer-events-none inset-0 z-50">
+      {/* 🔑 Pass the source offsets instead of mouse offsets */}
+      <div style={getItemStyles(initialSourceOffset, currentSourceOffset)}>
+        <div 
+          className="flex items-center justify-center bg-white rounded-xl shadow-2xl border-2 border-blue-500"
+          style={{ 
+            width: '56px', // Matches your w-14
+            height: '56px',
+            opacity: 0.9,
+          }}
+        >
+          <img
+            src={draggedBookmark.iconUrl}
+            alt=""
+            className="w-10 h-10 object-contain"
+          />
+        </div>
       </div>
     </div>
   );

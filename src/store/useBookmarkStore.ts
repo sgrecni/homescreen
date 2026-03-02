@@ -1,3 +1,4 @@
+// src/store/useBookmarkStore.ts
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,6 +15,8 @@ interface BookmarkStore {
   bookmarks: Bookmark[];
   addBookmark: (url: string, title: string, iconUrl: string) => void;
   removeBookmark: (id: string) => void;
+  // 🔑 Added for the F2/Click-to-rename feature
+  updateBookmarkTitle: (id: string, newTitle: string) => void; 
   moveBookmark: (dragId: string, hoverId: string) => void;
   exportBookmarks: () => void;
   importBookmarks: (data: Bookmark[]) => void;
@@ -28,7 +31,6 @@ const loadInitialState = (): Bookmark[] => {
   try {
     const serializedState = localStorage.getItem(STORAGE_KEY);
     if (serializedState === null) {
-      // Return a small set of defaults if nothing is in local storage
       return [
         { 
           id: uuidv4(), 
@@ -45,10 +47,7 @@ const loadInitialState = (): Bookmark[] => {
       ];
     }
     const parsedData = JSON.parse(serializedState);
-    // Basic validation to ensure we're loading an array of bookmarks
-    if (Array.isArray(parsedData)) {
-        return parsedData;
-    }
+    if (Array.isArray(parsedData)) return parsedData;
     return [];
   } catch (e) {
     console.error("Could not load state from localStorage", e);
@@ -58,35 +57,25 @@ const loadInitialState = (): Bookmark[] => {
 
 const saveState = (state: Bookmark[]) => {
   try {
-    const serializedState = JSON.stringify(state);
-    localStorage.setItem(STORAGE_KEY, serializedState);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     console.error("Could not save state to localStorage", e);
   }
 };
 
-
 // --- Zustand Store Definition ---
 
 export const useBookmarkStore = create<BookmarkStore>((set) => ({
-  // Load bookmarks on initialization
   bookmarks: loadInitialState(),
 
-  // Add a new bookmark
   addBookmark: (url, title, iconUrl) =>
     set((state) => {
-      const newBookmark: Bookmark = {
-        id: uuidv4(),
-        url,
-        title,
-        iconUrl,
-      };
+      const newBookmark: Bookmark = { id: uuidv4(), url, title, iconUrl };
       const newBookmarks = [...state.bookmarks, newBookmark];
       saveState(newBookmarks);
       return { bookmarks: newBookmarks };
     }),
 
-  // Remove a bookmark by ID
   removeBookmark: (id) =>
     set((state) => {
       const newBookmarks = state.bookmarks.filter((b) => b.id !== id);
@@ -94,47 +83,45 @@ export const useBookmarkStore = create<BookmarkStore>((set) => ({
       return { bookmarks: newBookmarks };
     }),
 
-  // Move a bookmark (used for drag-and-drop reordering)
-  moveBookmark: (dragId: string, hoverId: string) =>
+  // 🔑 The logic that powers the new renaming feature
+  updateBookmarkTitle: (id, newTitle) =>
+    set((state) => {
+      const newBookmarks = state.bookmarks.map((b) => 
+        b.id === id ? { ...b, title: newTitle } : b
+      );
+      saveState(newBookmarks);
+      return { bookmarks: newBookmarks };
+    }),
+
+  moveBookmark: (dragId, hoverId) =>
     set((state) => {
       const dragIndex = state.bookmarks.findIndex(b => b.id === dragId);
       const hoverIndex = state.bookmarks.findIndex(b => b.id === hoverId);
-
       if (dragIndex === -1 || hoverIndex === -1) return state;
 
       const newBookmarks = [...state.bookmarks];
-      
-      // Remove the dragged item and capture it
       const [draggedItem] = newBookmarks.splice(dragIndex, 1);
-      
-      // Insert the dragged item at the hover position
       newBookmarks.splice(hoverIndex, 0, draggedItem);
 
       saveState(newBookmarks);
       return { bookmarks: newBookmarks };
     }),
 
-  // Export all bookmarks as a JSON file download
   exportBookmarks: () => {
     const currentState = useBookmarkStore.getState();
     const dataStr = JSON.stringify(currentState.bookmarks, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-    const exportFileName = 'bookmarks.json';
-
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileName);
+    linkElement.setAttribute('download', 'bookmarks.json');
     linkElement.click();
     linkElement.remove();
   },
 
-  // Import bookmarks from a JSON array
-  importBookmarks: (data: Bookmark[]) =>
+  importBookmarks: (data) =>
     set(() => {
-        // Simple check to ensure imported data has necessary fields
-        const validBookmarks = data.filter(b => b.id && b.url && b.title);
-        saveState(validBookmarks);
-        return { bookmarks: validBookmarks };
+      const validBookmarks = data.filter(b => b.id && b.url && b.title);
+      saveState(validBookmarks);
+      return { bookmarks: validBookmarks };
     }),
 }));
