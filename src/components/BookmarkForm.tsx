@@ -52,13 +52,13 @@ export const BookmarkForm: React.FC = () => {
   };
   // ---------------------------
 
-  const handleUrlBlur = () => {
-    // Only auto-fill if the user hasn't already typed a custom title
-    if (url && !title) {
-      const autoTitle = getAutoTitle(url);
-      setTitle(autoTitle);
-    }
-  }
+  // const handleUrlBlur = () => {
+  //   // Only auto-fill if the user hasn't already typed a custom title
+  //   if (url && !title) {
+  //     const autoTitle = getAutoTitle(url);
+  //     setTitle(autoTitle);
+  //   }
+  // }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
