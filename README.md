@@ -17,10 +17,14 @@ data on the HomeScreen will go away, so I added an import export function.
 
 
 # future ideas:
-- rearrange the icons by drag and drop
-- maybe rename the icons
+- edit the URL
 - possible sign in via Oauth with Google / whatever and sync the data via a
   custom api or maybe save it to your own Google Drive if that's even possible.
+
+# impelmented ideas:
+- rearrange the icons by drag and drop
+- maybe rename the icons
+
 
 # Run locally
 
