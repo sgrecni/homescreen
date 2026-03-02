@@ -1,11 +1,11 @@
 # 2025-12-13 Steve Grecni
 
 This was kind of a shower/workout thought of mine.   Build a Home Page for a
-web browser and show the icons kind of like Android does.   By default  my
-browser home page usually filled up with ads or just plain wasted space. Why
+web browser and show the icons kind of like Android does.   My browser home
+page is usually filled up with ads or just plain wasted space by default. Why
 not have it customizable?   I normally do a Google search for this type of
 thing, but I figured this would be a good React project to help me learn and I
-had my own ideas and didn't want to be influenced by any existing projects that
+had my own ideas and I didn't want to be influenced by any existing projects that
 are out there (if any).  But hey, the world is a big place, so a project like
 this most likely already exists.
 
@@ -22,7 +22,12 @@ data on the HomeScreen will go away, so I added an import export function.
 - possible sign in via Oauth with Google / whatever and sync the data via a
   custom api or maybe save it to your own Google Drive if that's even possible.
 
+# Run locally
 
+```
+npm update
+npm run dev
+```
 
 # React + TypeScript + Vite
 
